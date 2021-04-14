@@ -1,0 +1,85 @@
+{% extends "base_bootstrap.html" %}
+
+{% block navbar %}
+
+<div class="topnav">
+  <a class = "active"  href="{% url 'wheel:wheel' %}">Bruh's Wheel </a>
+  <a href="{% url 'wheel:game_create' %}">Home</a>
+  <a href="news.asp">Not working url</a>
+  <a style="float:right" href="#about">Login</a>
+</div>
+
+{% endblock %}
+
+{% block content %}
+<style>
+    a.nice {
+        text-decoration: none;
+        color:#de645b;
+    }
+</style>
+<div class="row">
+  <div class="column side">
+    <h2>Droped game:</h2>
+     {% if your_game %}
+        <p>Name: {{ your_game.name }}</p>
+        <p>Bruh points: {{your_game.points}}</p>
+        <p>Positive reviews: {{ your_game.possitive_count }}</p>
+        <p>Negative  reviews:{{ your_game.negative_count }}</p>
+        {% if your_game.metascore %}
+            <p>Metascore: {{your_game.metascore}}</p>
+        {% endif %}
+        <p>Sold copies: {{ your_game.owners_count }}</p>
+        <p>Price: {{ your_game.price }} Rub</p>
+        <p>Developer: {{ your_game.developer }}</p>
+        <p>Publisher: {{ your_game.publisher }}</p>
+        <p>Duration: {{ your_game.duration }} {{your_game.time_unit}} {{your_game.label}}</p>
+        <p>HLTB: <a class='nice'  href="{{your_game.hltb_link}}"> click here</a> </p>
+        <p>Steam: <a  class='nice' href="{{your_game.steam_link}}"> click here</a></p>
+        <p>Languages: {{ your_game.langs}}</p>
+        <p>Genres: {{ your_game.gs}}</p>
+        <p>Tags: {{ your_game.ts}}</p>
+
+
+    {% endif %}
+  </div>
+
+  <div class="column middle">
+      <style>
+        .column.middle {
+          background-color: white;
+        }
+      </style>
+    <h2>WHEEEEEEEEl</h2>
+    <p>ne smotri</p>
+    {% if your_game %}
+    <p>{{ your_game.name }}</p>
+    {% endif %}
+    <form action="" method="post">{% csrf_token %}
+    <input type="submit" name='roll' value="Roll">
+    </form>
+
+  </div>
+
+  <div class="column side">
+
+      <style>
+        .column.side {
+          background-color: black;
+          color:#FFFFFF;
+        }
+      </style>
+
+    <h2>Game list</h2>
+    <p>Wuksichka</p>
+    {% if random_list %}
+        {% for game in random_list %}
+        <p> {{ game.name }}</p>
+        {% endfor %}
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}
+
+
