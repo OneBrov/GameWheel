@@ -4,6 +4,7 @@ from . import views
 app_name='wheel'
 urlpatterns = [
     path('', views.WheelView.as_view(), name='wheel'),
+
     path('game/create',
         views.GameCreateView.as_view(success_url=reverse_lazy('wheel:wheel')), name='game_create'),
 

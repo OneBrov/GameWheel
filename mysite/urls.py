@@ -48,6 +48,12 @@ urlpatterns += [
             'document_root': os.path.join(BASE_DIR, 'home/static'),
         }
     ),
+
+    path('b+.png', serve, {
+            'path': 'b+.png',
+            'document_root': os.path.join(BASE_DIR, 'home/static/img'),
+        }
+    ),
 ]
 
 # Switch to social login if it is configured - Keep for later

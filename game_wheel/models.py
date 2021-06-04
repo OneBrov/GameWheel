@@ -102,7 +102,16 @@ class Game(models.Model):
         score = raw_points * k * dop_k
         return int(score)
 
-class Droped_games:
+class Settings(models.Model):
+    duration_less = models.FloatField()
+    duration_more = models.FloatField()
+
+    ru_price_less = models.IntegerField()
+    ru_price_more = models.IntegerField()
+
+
+
+class Droped_games(models.Model):
     user =  models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     game =  models.ForeignKey(Game, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -1,10 +1,14 @@
 {% extends "base_bootstrap.html" %}
 
+{% load crispy_forms_tags %}
+
+
+
 {% block navbar %}
 
 <div class="topnav">
   <a class = "active"  href="{% url 'wheel:wheel' %}">Bruh's Wheel </a>
-  <a href="{% url 'wheel:game_create' %}">Home</a>
+  <a href="{% url 'wheel:wheel' %}">Home</a>
   <a href="news.asp">Not working url</a>
   <a style="float:right" href="#about">Login</a>
 </div>
@@ -13,15 +17,91 @@
 
 {% block content %}
 <style>
+    .topnav {
+        background-color: #090909;
+    }
+
+    .row {
+        background-color: #333;
+    }
+
     a.nice {
         text-decoration: none;
-        color:#de645b;
+        color:#f4511e;
+
     }
+      {% load static %}
+
+
+    .column.middle {
+        background-color: white;
+        height: 100%;
+        color: white;
+
+        background-color: #333;
+        background-repeat: no-repeat;
+        background-size: 100% 100%;
+    }
+
+    .column.middle h2 {
+        text-align: center;
+        text-shadow: 2px 2px 5px #4deeea;
+        font-size: 40px;
+
+
+    }
+
+    .column.side {
+        background-color: black;
+        color:#FFFFFF;
+    }
+
+    .column.side p{
+        margin: 7px;
+    }
+
+
+    .fixed_button{
+        position: relative;
+
+        top: 10%;
+        left:80%;
+
+        transform: translate(-50%, -50%);
+        display: inline-block;
+        border-radius: 4px;
+        background-color: #f4511e;
+        border: none;
+        font-size: 28px;
+        cursor: pointer;
+        padding: 20px;
+        color: white;
+
+    }
+
+    hr.dashed {
+        border-top: 2px solid #bbb;
+    }
+
+    .fixed_button:hover {
+        background-color: black;
+        color: white;
+    }
+
+    a.game {
+        color:#f4511e;
+    }
+
+
+
 </style>
 <div class="row">
-  <div class="column side">
-    <h2>Droped game:</h2>
+  <div id = 'left_box' class="column side">
+    <h2 id = 'left_area' >Your game:</h2>
+
      {% if your_game %}
+        <div id = 'game_disc'>
+        <img src="https://steamcdn-a.akamaihd.net/steam/apps/{{your_game.appid}}/header.jpg" style="width: 99%;" >
         <p>Name: {{ your_game.name }}</p>
         <p>Bruh points: {{your_game.points}}</p>
         <p>Positive reviews: {{ your_game.possitive_count }}</p>
@@ -34,51 +114,274 @@
         <p>Developer: {{ your_game.developer }}</p>
         <p>Publisher: {{ your_game.publisher }}</p>
         <p>Duration: {{ your_game.duration }} {{your_game.time_unit}} {{your_game.label}}</p>
-        <p>HLTB: <a class='nice'  href="{{your_game.hltb_link}}"> click here</a> </p>
-        <p>Steam: <a  class='nice' href="{{your_game.steam_link}}"> click here</a></p>
-        <p>Languages: {{ your_game.langs}}</p>
-        <p>Genres: {{ your_game.gs}}</p>
-        <p>Tags: {{ your_game.ts}}</p>
-
-
+        <p>HLTB: <a class='nice'  href="{{your_game.hltb_link}}" target="_blank"> click here</a> </p>
+        <p>Steam: <a  class='nice' href="{{your_game.steam_link}}" target="_blank" > click here</a></p>
+        <p>Languages: {{ your_game.langs }}</p>
+        <p>Genres: {{ your_game.gs }}</p>
+        <p>Tags: {{ your_game.ts }}</p>
+        </div>
     {% endif %}
+    <div>
+        <hr class="dashed">
+        <h2>Settings:</h2>
+        <form id = 'settings' method="post" action=''>
+        {% csrf_token %}
+        {{ settings_form|crispy }}
+        <input class='fixed_button'  type="submit" name='roll' value="Roll">
+        <input type="button" value="Reset" onClick="this.form.reset()" />
+
+        </form>
+
+    </div>
   </div>
 
-  <div class="column middle">
-      <style>
-        .column.middle {
-          background-color: white;
-        }
-      </style>
-    <h2>WHEEEEEEEEl</h2>
-    <p>ne smotri</p>
+  <div id = 'middle_area' class="column middle" >
+    <h2>Wheel</h2>
+    <h3>BruhWheel can help you choose a game from Steam. Just push a roll button</h3>
     {% if your_game %}
-    <p>{{ your_game.name }}</p>
+    <p></p>
+    {% else %}
+    <p>No games for your request</p>
     {% endif %}
-    <form action="" method="post">{% csrf_token %}
-    <input type="submit" name='roll' value="Roll">
-    </form>
+
+    <style>
+
+
+       .box{
+           width:500px;
+           height:500px;
+           margin: 0px auto;
+           position: relative;
+           overflow:hidden;
+       }
+
+       canvas {
+        transition: all cubic-bezier(0.23, 0.64, 0.36, 1) 20s;
+
+       }
+
+      .arrow {
+
+        border-top: 10px solid transparent;
+        border-bottom: 10px solid transparent;
+        border-right: 15px solid #0ab0ba;
+        position: absolute;
+        left: 450px;
+        top: 240px;
+        transform: translateX(-50%);
+    }
+
+    div.game_disc{
+    transition: opacity 1s ease-out;
+    opacity: 0;
+    overflow: hidden;
+
+
+  }
+    div.game_disc.active {
+
+        opacity: 1;
+        height: auto;
+    }
+
+    </style>
+    <div class = 'box'>
+
+    <canvas id="myCanvasus" width="500" height="500"></canvas>
+     <div class="arrow"></div>
+
+    </div>
+        <script>
+
+                var canvas = document.getElementById('myCanvasus');
+
+                var context = canvas.getContext('2d');
+
+                // centre or center for US :) the drawing
+                var x = canvas.width / 2;
+                var y = canvas.height / 2;
+
+                // number of days
+                var days = 1;
+
+                // number of hours
+                var hours = {{count_games}};
+
+                // one segment represents an hour so divide degrees by hours
+                var segmentWidth = 360 / hours;
+
+                // size of a pie : it is an angle in radians
+                var pieAngle = 2 * Math.PI / hours;
+
+                // how thick you want a segment
+                var segmentDepth = 200;
+
+
+
+                function drawSegments(radius) {
+
+                        for (var i = 0; i < hours; i++) {
+                            context.beginPath();
+                            context.moveTo(x, y);
+                            context.arc(x, y, radius, i*pieAngle, (i+1)*pieAngle, false);
+                            context.lineWidth = segmentDepth;
+                            var hueValue = i * 15;
+                            context.fillStyle = 'hsl(' + hueValue + ',70%, 60%)';
+
+                        // '#'+(Math.random()*0xFFFFFF<<0).toString(16);
+                        context.fill();
+                        context.lineWidth = 2;
+                        context.strokeStyle = '#444';
+                        context.stroke();
+                        }
+                }
+
+                function strcast(word){
+                     const htmlEntities = {
+                        "&": "&amp;",
+                        "<": "&lt;",
+                        ">": "&gt;",
+                        '"': "&quot;",
+                        "'": "&apos;"
+                      };
+
+                    return word.replace(/([&<>\"'])/g, match => htmlEntities[match]);
+                }
+
+
+
+                function drawText() {
+
+                    context.font = '16px Helvetica';
+                    context.shadowOffsetX = 4;
+                    context.shadowOffsetY = 4;
+                    context.shadowColor = "rgba(0,0,0,0.3)";
+                    context.shadowBlur = 4;
+
+                   // context.rotate(-Math.PI/3);
+                    context.textAlign = "left";
+                    context.fillStyle = "white";
+                    context.translate(x , y)
+                    var angle = 360 / {{ count_games }}
+                    context.rotate(-angle/2* Math.PI / 180 );
+                    {% if random_list %}
+                        {% for game in random_list %}
+                              //context.strokeText( '{{ game.name }}', 0 + 10, 0 - 10);
+                              context.fillText( strcast('{{ game.name }}'), 0 + 50, 5, 140 );
+                              context.rotate(-angle * Math.PI / 180);
+                        {% endfor %}
+
+                    {% endif %}
+
+                }
+                // start drawing our chart
+                drawSegments(segmentDepth)
+                drawText()
+
+        </script>
+
+
+
+
 
   </div>
 
   <div class="column side">
 
-      <style>
-        .column.side {
-          background-color: black;
-          color:#FFFFFF;
-        }
-      </style>
-
-    <h2>Game list</h2>
+    <h2>Games list:</h2>
     <p>Wuksichka</p>
     {% if random_list %}
         {% for game in random_list %}
+        <style>
+        #game{{game.id}} {
+            opacity: 1;
+            transition: opacity 0.5s linear;
+        }
+
+        #game{{game.id}}.hide {
+            opacity: 0;
+        }
+        </style>
         <p> {{ game.name }}</p>
+        <p> <img src="https://steamcdn-a.akamaihd.net/steam/apps/{{game.appid}}/header.jpg" style="width: 80%;" > </p>
+        <p>
+            <button onclick="toggle_visibility('game{{game.id}}')">Show / Hide Info</button>
+            <div style="display: none" id="game{{game.id}}">
+                <p>Bruh points: {{game.points}}</p>
+                <p>Positive reviews: {{ game.possitive_count }}</p>
+                <p>Negative  reviews:{{ game.negative_count }}</p>
+                {% if game.metascore %}
+                    <p>Metascore: {{game.metascore}}</p>
+                {% endif %}
+                <p>Sold copies: {{ game.owners_count }}</p>
+                <p>Price: {{ game.price }} Rub</p>
+                <p>Developer: {{ game.developer }}</p>
+                <p>Publisher: {{ game.publisher }}</p>
+                <p>Duration: {{ game.duration }} {{game.time_unit}} {{game.label}}</p>
+                <p>HLTB: <a class='nice'  href="{{game.hltb_link}}" target="_blank"> click here</a> </p>
+                <p>Steam: <a  class='nice' href="{{game.steam_link}}" target="_blank" > click here</a></p>
+                <p>Languages: {{ game.langs }}</p>
+                <p>Genres: {{ game.gs }}</p>
+                <p>Tags: {{ game.ts }}</p>
+
+            </div>
+        </p>
+        <hr class="dashed">
         {% endfor %}
     {% endif %}
+
   </div>
 </div>
+
+
+<script type="text/javascript">
+<!--
+    function toggle_visibility(id) {
+
+       var e = document.getElementById(id);
+       if(e.style.display == 'block')
+       {
+
+           e.style.display = 'none';
+       }
+       else{
+
+          e.style.display = 'block';
+
+
+       }
+    }
+//-->
+</script>
+
+        <script>
+
+
+            function spinning(){
+                var circles = Math.floor(Math.random()*(30 - 10)) + 10;
+                circles = circles * 360
+
+                var lower_bound = 360/{{count_games}} * ({{droped_id}})
+                var upper_bound = 360/{{count_games}} * ({{droped_id}} + 1)
+
+                var y = Math.floor(Math.random() *(upper_bound - lower_bound) ) + lower_bound;
+
+                var deg = circles + y + 1
+                document.getElementById('myCanvasus').style.transform = 'rotate(' +deg + 'deg)';
+            }
+
+
+            function output_game(){
+                document.getElementById('game_disc').style.opacity='1';
+                document.getElementById('game_disc').style.display='block';
+
+            }
+            document.getElementById('game_disc').style.display='none';
+            spinning()
+            setTimeout(output_game, 20000);
+
+
+        </script>
 
 {% endblock %}
 
